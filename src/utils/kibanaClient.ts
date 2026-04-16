@@ -159,9 +159,30 @@ export class KibanaClient {
   ): Promise<any[]> {
     try {
       const size = options.size || DEFAULT_PAGE_SIZE;
-      const shouldClauses = CORRELATION_ID_FIELDS.map(field => ({ match: { [field]: correlationId } }));
-      const query = { bool: { should: shouldClauses, minimum_should_match: 1 } };
+
+      // สร้าง should clauses สำหรับทุก field variant
+      const shouldClauses: any[] = CORRELATION_ID_FIELDS.map(field => ({
+        match: { [field]: correlationId }
+      }));
+
+      // เพิ่ม term queries (exact match) สำหรับ better accuracy
+      shouldClauses.push(
+        { term: { 'correlationId.keyword': correlationId } },
+        { term: { 'requestUID.keyword': correlationId } },
+        { term: { 'X-Request-ID.keyword': correlationId } },
+        { term: { 'headers.requestUID.keyword': correlationId } },
+        { term: { 'headers.x-request-id.keyword': correlationId } }
+      );
+
+      const query = {
+        bool: {
+          should: shouldClauses,
+          minimum_should_match: 1
+        }
+      };
+
       const builtQuery = this.buildQuery(query, options);
+      logger.debug(`Searching for correlationId=${correlationId} in ${size} results`);
       const hits = await this.executeSearch(index, builtQuery, size);
       logger.debug(`Found ${hits.length} logs with correlationId=${correlationId}`);
       return hits;

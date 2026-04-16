@@ -33,7 +33,7 @@ export const COLLECTIONS = {
 // Kibana/Elasticsearch Indices
 export const INDICES = {
   LOG_PATTERN: 'logs-*',
-  BILL_PAYMENT: 'logs-bill-payment-*',
+  BILL_PAYMENT: 'scb-payment-domain-for-backdoor-request-*',
 };
 
 // Timeouts (in milliseconds)

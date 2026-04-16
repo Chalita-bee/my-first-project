@@ -155,10 +155,14 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
         try {
           await kc.connect();
 
+          // Wait for logs to propagate to Elasticsearch (10-15 seconds)
+          console.log(`[Step 2] ⏳ Waiting for logs to propagate (10-15 seconds)...`);
+          await new Promise(resolve => setTimeout(resolve, 12000));
+
           let logs = await kc.getLogsByCorrelationId(
             INDICES.BILL_PAYMENT,
             requestId,
-            { env: 'alpha' }
+            { env: 'alpha', size: 20 }
           );
 
           if (logs.length === 0) {
