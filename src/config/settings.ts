@@ -13,6 +13,7 @@ export const apiConfig = {
 };
 
 export const mongoConfig = {
+  connectionString: process.env.MONGO_CONNECTION_STRING || '',
   host: process.env.MONGO_HOST || 'localhost',
   port: parseInt(process.env.MONGO_PORT || '27017', 10),
   database: process.env.MONGO_DATABASE || 'bill_payment',
@@ -43,6 +44,11 @@ export const logConfig = {
 };
 
 export function getMongoConnectionString(): string {
+  // ใช้ connection string จาก .env ถ้ามี
+  if (mongoConfig.connectionString) {
+    return mongoConfig.connectionString;
+  }
+  // ถ้าไม่มี ให้ build จาก individual configs
   if (mongoConfig.username && mongoConfig.password) {
     return `mongodb://${mongoConfig.username}:${mongoConfig.password}@${mongoConfig.host}:${mongoConfig.port}/${mongoConfig.database}`;
   }
