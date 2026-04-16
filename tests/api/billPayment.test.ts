@@ -147,19 +147,20 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
       // ====== STEP 2 & 3: Validate Kibana Logs and MongoDB (in parallel) ======
       console.log(`\n[Steps 2-3] Validating Kibana logs and MongoDB in parallel...`);
 
-      const kibanaValidation = (async () => {
-        kibanaClient = new KibanaClient();
+      const kibanaValidation = (async (): Promise<void> => {
+        const kc = new KibanaClient();
+        kibanaClient = kc;
         try {
-          await kibanaClient.connect();
+          await kc.connect();
 
-          let logs = await kibanaClient.getLogsByCorrelationId(
+          let logs = await kc.getLogsByCorrelationId(
             INDICES.BILL_PAYMENT,
             requestId,
             { env: 'alpha' }
           );
 
           if (logs.length === 0) {
-            logs = await kibanaClient.getLogsByField(
+            logs = await kc.getLogsByField(
               INDICES.BILL_PAYMENT,
               'requestId',
               requestId,
@@ -181,18 +182,19 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
         }
       })();
 
-      const mongoValidation = (async () => {
-        mongoClient = new MongoDBClient();
+      const mongoValidation = (async (): Promise<void> => {
+        const mc = new MongoDBClient();
+        mongoClient = mc;
         try {
-          await mongoClient.connect();
+          await mc.connect();
 
-          let transaction = await mongoClient.findOne(
+          let transaction = await mc.findOne(
             COLLECTIONS.TRANSACTIONS,
             { requestId: requestId }
           );
 
           if (!transaction) {
-            transaction = await mongoClient.findOne(
+            transaction = await mc.findOne(
               COLLECTIONS.BILLS,
               { accountId: payload.accountDeposit.accountId }
             );
