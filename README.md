@@ -40,7 +40,9 @@ my-first-project-nodejs/
 ├── tsconfig.json            # TypeScript config
 ├── jest.config.ts           # Jest configuration
 ├── .env.example             # Environment template
-└── .gitignore              # Git ignore rules
+├── .gitignore              # Git ignore rules
+├── README.md               # Project documentation
+└── KIBANA_CONFIGURATION.md # Kibana setup and usage guide
 ```
 
 ## Requirements
@@ -256,6 +258,33 @@ npm run clean         # Remove build artifacts
 - JSON reports for CI/CD integration
 - Coverage reports
 
+## Kibana Integration
+
+The framework includes advanced Kibana integration for log validation:
+
+- **Correlation ID Search**: Query logs by correlationId, requestUID, or X-Request-ID
+- **Environment Filtering**: Automatically filter logs by environment (default: alpha)
+- **Multi-Field Queries**: Complex queries with multiple field filters
+- **Timestamp Ranges**: Query logs within specific time ranges
+
+See [KIBANA_CONFIGURATION.md](./KIBANA_CONFIGURATION.md) for detailed setup and usage instructions.
+
+### Quick Kibana Example
+
+```typescript
+const kibanaClient = new KibanaClient();
+await kibanaClient.connect();
+
+const logs = await kibanaClient.getLogsByCorrelationId(
+  'logs-bill-payment-*',
+  'BE69041607114c8adb0e42',
+  { env: 'alpha' }
+);
+
+console.log(`Found ${logs.length} logs`);
+await kibanaClient.disconnect();
+```
+
 ## Troubleshooting
 
 ### "Cannot find module" errors
@@ -282,6 +311,7 @@ npx playwright install
 - Verify Elasticsearch is running
 - Check credentials in `.env`
 - Verify host/port are correct
+- See [KIBANA_CONFIGURATION.md](./KIBANA_CONFIGURATION.md) for troubleshooting
 
 ### Jest configuration errors
 

@@ -21,11 +21,13 @@ export const mongoConfig = {
 };
 
 export const elasticsearchConfig = {
-  host: process.env.ELASTICSEARCH_HOST || 'http://localhost:9200',
+  host: process.env.ELASTICSEARCH_HOST || 'https://scb-mandatory-logging-np-es.np.private.azscb.tech',
 };
 
 export const kibanaConfig = {
-  host: process.env.KIBANA_HOST || 'http://localhost:5601',
+  host: process.env.KIBANA_HOST || 'https://scb-mandatory-logging-np-kb.np.private.azscb.tech',
+  space: process.env.KIBANA_SPACE || 'scb-payment-domain-cloud',
+  indexPattern: process.env.KIBANA_INDEX_PATTERN || 'logs-bill-payment-*',
   username: process.env.KIBANA_USERNAME || '',
   password: process.env.KIBANA_PASSWORD || '',
 };
@@ -47,10 +49,7 @@ export function getMongoConnectionString(): string {
   return `mongodb://${mongoConfig.host}:${mongoConfig.port}/${mongoConfig.database}`;
 }
 
-export function getElasticsearchAuth(): {
-  username: string;
-  password: string;
-} | undefined {
+export function getElasticsearchAuth(): { username: string; password: string } | undefined {
   if (kibanaConfig.username && kibanaConfig.password) {
     return {
       username: kibanaConfig.username,
