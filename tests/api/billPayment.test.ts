@@ -185,23 +185,26 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
         try {
           await mc.connect();
 
+          // ค้นหาจาก backdoor_transaction collection โดยใช้ requestUID
           let transaction = await mc.findOne(
-            COLLECTIONS.TRANSACTIONS,
-            { requestId: requestId }
+            COLLECTIONS.BACKDOOR_TRANSACTION,
+            { requestUID: requestId }
           );
 
+          // Fallback: ค้นหาจาก correlationId ถ้า requestUID ไม่พบ
           if (!transaction) {
             transaction = await mc.findOne(
-              COLLECTIONS.BILLS,
-              { accountId: payload.accountDeposit.accountId }
+              COLLECTIONS.BACKDOOR_TRANSACTION,
+              { correlationId: requestId }
             );
           }
 
           if (transaction) {
             DatabaseValidator.assertDocumentExists(transaction, 'Transaction not found in MongoDB');
             console.log(`[Step 3] ✓ Found transaction in MongoDB`);
+            console.log(`[Step 3] Transaction ID:`, (transaction as any)._id);
           } else {
-            console.log(`[Step 3] ⚠ No transaction found in MongoDB`);
+            console.log(`[Step 3] ⚠ No transaction found in backdoor_transaction collection`);
           }
         } catch (mongoError) {
           console.log(`[Step 3] ⚠ MongoDB validation skipped:`, (mongoError as any).message);

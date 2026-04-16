@@ -27,6 +27,7 @@ export const COLLECTIONS = {
   BILLS: 'bills',
   PAYMENTS: 'payments',
   TRANSACTIONS: 'transactions',
+  BACKDOOR_TRANSACTION: process.env.MONGO_TRANSACTION_COLLECTION || 'backdoor_transaction',
 };
 
 // Kibana/Elasticsearch Indices
