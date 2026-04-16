@@ -1,0 +1,45 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+*.tgz
+.npm
+
+# Build output
+dist/
+build/
+out/
+
+# Test reports
+reports/
+coverage/
+junit.xml
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-workspace
+
+# Playwright
+.auth/
+test-results/
+playwright-report/
+
+# TypeScript
+*.js
+!jest.config.js
+.tsbuildinfo
+
+# OS
+Thumbs.db
+.env.prod
