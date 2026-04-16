@@ -51,6 +51,76 @@ export class BillPaymentPayloads {
   }
 }
 
+export class InqPaymentPayloads {
+  static inqPaymentPayload(): any {
+    return {
+      tranCode: 'BLPY',
+      terminalNo: 'WS01',
+      bankCode: '14',
+      bankName: 'SCB',
+      processingBranch: '0001',
+      accountDeposit: {
+        accountId: '4230200092',
+        accountType: '3',
+        accountCurrency: '764',
+      },
+      remittanceInfo: {
+        transAmount: {
+          amount: 3000,
+        },
+      },
+      userTranCode: '9112',
+      cardRec: [
+        {
+          customerId: '2587413699514753',
+        },
+      ],
+    };
+  }
+
+  static getHeaders(): any {
+    const IdGenerator = require('../utils/idGenerator').default;
+    const requestId = IdGenerator.generateRequestId();
+
+    return {
+      resourceOwnerID: 'ST75725',
+      'X-Request-ID': requestId,
+      'X-Channel': 'STEL',
+      correlationId: requestId,
+      requestUID: requestId,
+      sourceSystem: 'STEL',
+      apikey: 'd2270aa77d4347b49520a7ed9933benz',
+      apisecret: 'f1b22b2ac43843acbb3035e793cd7457',
+    };
+  }
+
+  static inqPaymentWithDifferentAmount(): any {
+    return {
+      tranCode: 'BLPY',
+      terminalNo: 'WS01',
+      bankCode: '14',
+      bankName: 'SCB',
+      processingBranch: '0001',
+      accountDeposit: {
+        accountId: '4230200092',
+        accountType: '3',
+        accountCurrency: '764',
+      },
+      remittanceInfo: {
+        transAmount: {
+          amount: 5000,
+        },
+      },
+      userTranCode: '9112',
+      cardRec: [
+        {
+          customerId: '2587413699514753',
+        },
+      ],
+    };
+  }
+}
+
 export class QueryPayloads {
   static getBillById(): any {
     return {

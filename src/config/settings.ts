@@ -2,8 +2,13 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+export const DEFAULT_HEADERS = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+};
+
 export const apiConfig = {
-  baseUrl: process.env.API_BASE_URL || 'http://localhost:8080',
+  baseUrl: process.env.API_BASE_URL || 'https://pmdb-internal-proxy-gateway-alpha.np.private.azscb.tech',
   timeout: parseInt(process.env.API_TIMEOUT || '30000', 10),
 };
 

@@ -33,11 +33,6 @@ const config: Config = {
         dateFormat: 'yyyy-mm-dd HH:MM:ss',
       },
     ],
-    ['jest-junit', {
-      outputDirectory: 'reports/json',
-      outputName: 'report.xml',
-      usePathAsTestSuite: true,
-    }],
   ],
 };
 

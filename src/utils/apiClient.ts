@@ -34,8 +34,9 @@ export class APIClient {
       const response = await this.axiosInstance.post<T>(endpoint, data, config);
       logger.info(`Response Status: ${response.status}`);
       return response;
-    } catch (error) {
-      logger.error(`POST request failed for ${endpoint}: ${error}`);
+    } catch (error: any) {
+      const errorMessage = this.getErrorMessage(error);
+      logger.error(`POST request failed for ${endpoint}: ${errorMessage}`);
       throw error;
     }
   }
@@ -71,6 +72,21 @@ export class APIClient {
 
   clearAuthHeader(): void {
     delete this.axiosInstance.defaults.headers.common['Authorization'];
+  }
+
+  private getErrorMessage(error: any): string {
+    if (error.response) {
+      // Server responded with error status
+      return `Status ${error.response.status} - ${JSON.stringify(error.response.data)}`;
+    } else if (error.request) {
+      // Request made but no response
+      return `No response received - ${error.message}`;
+    } else if (error.code) {
+      // Network error
+      return `${error.code} - ${error.message}`;
+    } else {
+      return error.message || 'Unknown error';
+    }
   }
 }
 

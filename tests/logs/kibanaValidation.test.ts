@@ -12,7 +12,7 @@ describe('Kibana Log Validation Tests', () => {
     } catch (error) {
       console.log('Kibana not available, tests will be skipped');
     }
-  });
+  }, 15000);
 
   afterAll(async () => {
     await kibanaClient.disconnect();
@@ -31,7 +31,7 @@ describe('Kibana Log Validation Tests', () => {
     } catch (error) {
       console.log('Kibana not available, skipping test');
     }
-  });
+  }, 15000);
 
   test('should find payment processing logs', async () => {
     try {
@@ -46,7 +46,7 @@ describe('Kibana Log Validation Tests', () => {
     } catch (error) {
       console.log('Kibana not available, skipping test');
     }
-  });
+  }, 15000);
 
   test('should query logs by timestamp', async () => {
     try {
@@ -63,7 +63,7 @@ describe('Kibana Log Validation Tests', () => {
     } catch (error) {
       console.log('Kibana not available, skipping test');
     }
-  });
+  }, 15000);
 
   test('should query logs by user_id', async () => {
     try {
@@ -79,7 +79,7 @@ describe('Kibana Log Validation Tests', () => {
     } catch (error) {
       console.log('Kibana not available, skipping test');
     }
-  });
+  }, 15000);
 
   test('should find error logs', async () => {
     try {
@@ -92,7 +92,7 @@ describe('Kibana Log Validation Tests', () => {
     } catch (error) {
       console.log('Kibana not available, skipping test');
     }
-  });
+  }, 15000);
 
   test('should verify logs contain bill_id', async () => {
     try {
@@ -111,7 +111,7 @@ describe('Kibana Log Validation Tests', () => {
     } catch (error) {
       console.log('Kibana not available, skipping test');
     }
-  });
+  }, 15000);
 
   test('should query logs by level', async () => {
     try {
@@ -125,7 +125,7 @@ describe('Kibana Log Validation Tests', () => {
     } catch (error) {
       console.log('Kibana not available, skipping test');
     }
-  });
+  }, 15000);
 
   test('should verify log message format', async () => {
     try {
@@ -144,7 +144,7 @@ describe('Kibana Log Validation Tests', () => {
     } catch (error) {
       console.log('Kibana not available, skipping test');
     }
-  });
+  }, 15000);
 
   test('should query transaction logs', async () => {
     try {
@@ -157,5 +157,5 @@ describe('Kibana Log Validation Tests', () => {
     } catch (error) {
       console.log('Kibana not available, skipping test');
     }
-  });
+  }, 15000);
 });

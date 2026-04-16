@@ -52,9 +52,9 @@ export class MongoDBClient {
   async findMany<T = any>(collectionName: string, query: any = {}): Promise<T[]> {
     try {
       const collection = this.getCollection(collectionName);
-      const results = await collection.find<T>(query).toArray();
+      const results = await collection.find(query).toArray();
       logger.debug(`Found ${results.length} documents in ${collectionName}`);
-      return results;
+      return results as T[];
     } catch (error) {
       logger.error(`Error finding documents in ${collectionName}: ${error}`);
       throw error;
