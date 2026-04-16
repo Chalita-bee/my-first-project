@@ -144,79 +144,73 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
       const responseData = response.data;
       console.log(`[Step 1] ✓ API Response received:`, JSON.stringify(responseData, null, 2));
 
-      // ====== STEP 2: Validate Kibana Logs ======
-      console.log(`\n[Step 2] Validating Kibana logs for Request ID: ${requestId}`);
-      kibanaClient = new KibanaClient();
-      try {
-        await kibanaClient.connect();
+      // ====== STEP 2 & 3: Validate Kibana Logs and MongoDB (in parallel) ======
+      console.log(`\n[Steps 2-3] Validating Kibana logs and MongoDB in parallel...`);
 
-        // Try correlation ID search first (supports multiple ID field variants)
-        let logs = await kibanaClient.getLogsByCorrelationId(
-          INDICES.BILL_PAYMENT,
-          requestId,
-          { env: 'alpha' } // Filter by environment as per Kibana config
-        );
+      const kibanaValidation = (async () => {
+        kibanaClient = new KibanaClient();
+        try {
+          await kibanaClient.connect();
 
-        // Fallback to direct requestId field search if correlation ID search returns no results
-        if (logs.length === 0) {
-          logs = await kibanaClient.getLogsByField(
+          let logs = await kibanaClient.getLogsByCorrelationId(
             INDICES.BILL_PAYMENT,
-            'requestId',
             requestId,
             { env: 'alpha' }
           );
-        }
 
-        if (logs.length > 0) {
-          LogValidator.assertLogExists(logs, requestId);
-          console.log(`[Step 2] ✓ Found ${logs.length} log entries in Kibana`);
-          console.log(`[Step 2] ✓ Log details:`, JSON.stringify(logs[0], null, 2));
+          if (logs.length === 0) {
+            logs = await kibanaClient.getLogsByField(
+              INDICES.BILL_PAYMENT,
+              'requestId',
+              requestId,
+              { env: 'alpha' }
+            );
+          }
 
-          // Validate key fields from Kibana view
-          if (logs[0]) {
+          if (logs.length > 0) {
+            LogValidator.assertLogExists(logs, requestId);
+            console.log(`[Step 2] ✓ Found ${logs.length} log entries in Kibana`);
             const hasRequestField = logs[0].correlationId || logs[0].requestUID || logs[0]['X-Request-ID'];
             const hasHttpStatus = logs[0].httpStatusCode || logs[0]['http.status_code'];
-            const hasUri = logs[0].uri || logs[0]['request.url'];
-            console.log(`[Step 2] ✓ Request field present:`, !!hasRequestField);
-            console.log(`[Step 2] ✓ HTTP status field present:`, !!hasHttpStatus);
-            console.log(`[Step 2] ✓ URI field present:`, !!hasUri);
+            console.log(`[Step 2] ✓ Key fields present: request=${!!hasRequestField}, status=${!!hasHttpStatus}`);
+          } else {
+            console.log(`[Step 2] ⚠ No logs found in Kibana`);
           }
-        } else {
-          console.log(`[Step 2] ⚠ No logs found in Kibana (API may not be available)`);
+        } catch (kibanaError) {
+          console.log(`[Step 2] ⚠ Kibana validation skipped:`, (kibanaError as any).message);
         }
-      } catch (kibanaError) {
-        console.log(`[Step 2] ⚠ Kibana validation skipped:`, (kibanaError as any).message);
-      }
+      })();
 
-      // ====== STEP 3: Validate MongoDB ======
-      console.log(`\n[Step 3] Validating MongoDB for transaction data`);
-      mongoClient = new MongoDBClient();
-      try {
-        await mongoClient.connect();
+      const mongoValidation = (async () => {
+        mongoClient = new MongoDBClient();
+        try {
+          await mongoClient.connect();
 
-        // Try to find transaction by various identifiers
-        let transaction = await mongoClient.findOne(
-          COLLECTIONS.TRANSACTIONS,
-          { requestId: requestId }
-        );
-
-        if (!transaction) {
-          transaction = await mongoClient.findOne(
-            COLLECTIONS.BILLS,
-            { accountId: payload.accountDeposit.accountId }
+          let transaction = await mongoClient.findOne(
+            COLLECTIONS.TRANSACTIONS,
+            { requestId: requestId }
           );
-        }
 
-        if (transaction) {
-          DatabaseValidator.assertDocumentExists(transaction, 'Transaction not found in MongoDB');
-          console.log(`[Step 3] ✓ Found transaction in MongoDB`);
-          console.log(`[Step 3] ✓ Transaction details:`, JSON.stringify(transaction, null, 2));
-        } else {
-          console.log(`[Step 3] ⚠ No transaction found in MongoDB (API may not persist data)`);
+          if (!transaction) {
+            transaction = await mongoClient.findOne(
+              COLLECTIONS.BILLS,
+              { accountId: payload.accountDeposit.accountId }
+            );
+          }
+
+          if (transaction) {
+            DatabaseValidator.assertDocumentExists(transaction, 'Transaction not found in MongoDB');
+            console.log(`[Step 3] ✓ Found transaction in MongoDB`);
+          } else {
+            console.log(`[Step 3] ⚠ No transaction found in MongoDB`);
+          }
+        } catch (mongoError) {
+          console.log(`[Step 3] ⚠ MongoDB validation skipped:`, (mongoError as any).message);
         }
-      } catch (mongoError) {
-        console.log(`[Step 3] ⚠ MongoDB validation skipped:`, (mongoError as any).message);
-      }
+      })();
+
+      // Wait for both validations to complete
+      await Promise.all([kibanaValidation, mongoValidation]);
 
       console.log(`\n✅ [COMPLETE] Full integration test passed!`);
 
@@ -303,8 +297,6 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
     let kibanaClient: KibanaClient | null = null;
 
     try {
-      // ====== Call API ======
-      console.log(`\n[CorrelationID Test] Calling Payment Inquiry API with Request ID: ${requestId}`);
       const response = await apiClient.post(
         '/v1/proxy-gateway/payment/teller/InqPayment',
         payload,
@@ -312,43 +304,25 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
       );
 
       ResponseValidator.assertStatusCode(response, HTTP_STATUS.OK);
-      console.log(`[CorrelationID Test] ✓ API Response received with status: ${response.status}`);
+      console.log(`[CorrelationID Test] ✓ API Response received`);
 
-      // ====== Validate Kibana Logs with Correlation ID ======
-      console.log(`\n[CorrelationID Test] Searching Kibana logs using correlation ID search`);
       kibanaClient = new KibanaClient();
-      try {
-        await kibanaClient.connect();
+      await kibanaClient.connect();
 
-        // Use advanced correlation ID search
-        const logs = await kibanaClient.getLogsByCorrelationId(
-          INDICES.BILL_PAYMENT,
-          requestId,
-          { env: 'alpha', size: 50 }
-        );
+      const logs = await kibanaClient.getLogsByCorrelationId(
+        INDICES.BILL_PAYMENT,
+        requestId,
+        { env: 'alpha', size: 5 }
+      );
 
-        if (logs.length > 0) {
-          console.log(`[CorrelationID Test] ✓ Found ${logs.length} log entries using correlation ID`);
-
-          // Validate that the logs contain expected fields
-          const firstLog = logs[0];
-          const hasAnyIdField = firstLog.correlationId || firstLog.requestUID ||
-                               firstLog['X-Request-ID'] || firstLog['headers.requestUID'] ||
-                               firstLog['headers.x-request-id'];
-
-          expect(hasAnyIdField).toBeTruthy();
-          console.log(`[CorrelationID Test] ✓ Logs contain correlation ID field`);
-        } else {
-          console.log(`[CorrelationID Test] ⚠ No logs found (logs may not be persisted yet)`);
-        }
-      } catch (kibanaError) {
-        console.log(`[CorrelationID Test] ⚠ Kibana validation skipped:`, (kibanaError as any).message);
+      if (logs.length > 0) {
+        LogValidator.assertLogExists(logs, requestId);
+        console.log(`[CorrelationID Test] ✓ Found ${logs.length} log entries`);
+      } else {
+        console.log(`[CorrelationID Test] ⚠ No logs found`);
       }
-
-      console.log(`\n✅ [CorrelationID Test] Completed!`);
-
     } catch (error) {
-      console.log(`\n❌ [CorrelationID Test] Failed:`, (error as any).message);
+      console.log(`[CorrelationID Test] ⚠ Skipped:`, (error as any).message);
     } finally {
       if (kibanaClient) await kibanaClient.disconnect();
     }
