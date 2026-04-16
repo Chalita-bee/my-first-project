@@ -17,6 +17,9 @@ export class KibanaClient {
   async connect(): Promise<void> {
     try {
       const auth = getElasticsearchAuth();
+      logger.debug(`Connecting to Elasticsearch at: ${elasticsearchConfig.host}`);
+      logger.debug(`Auth enabled: ${!!auth}`);
+
       this.client = new Client({
         node: elasticsearchConfig.host,
         ...(auth && { auth }),
@@ -24,8 +27,12 @@ export class KibanaClient {
 
       await this.client.ping();
       logger.info(`Connected to Elasticsearch: ${elasticsearchConfig.host}`);
-    } catch (error) {
-      logger.error(`Failed to connect to Elasticsearch: ${error}`);
+    } catch (error: any) {
+      logger.error(`Failed to connect to Elasticsearch:`);
+      logger.error(`  URL: ${elasticsearchConfig.host}`);
+      logger.error(`  Error: ${error.message}`);
+      logger.error(`  Status: ${error.statusCode || error.status || 'unknown'}`);
+      logger.error(`  Stack: ${error.stack}`);
       throw error;
     }
   }

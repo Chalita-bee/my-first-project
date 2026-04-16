@@ -145,6 +145,12 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
       console.log(`\n[Steps 2-3] Validating Kibana logs and MongoDB in parallel...`);
 
       const kibanaValidation = async (): Promise<void> => {
+        // Skip Kibana validation if no credentials configured
+        if (!process.env.KIBANA_USERNAME || !process.env.KIBANA_PASSWORD) {
+          console.log(`[Step 2] ⓘ Kibana validation skipped (no credentials configured)`);
+          return;
+        }
+
         const kc = new KibanaClient();
         try {
           await kc.connect();
