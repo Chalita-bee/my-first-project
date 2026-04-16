@@ -221,8 +221,8 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
       console.log('API not available or integration test setup needed');
     } finally {
       // Cleanup
-      if (mongoClient) await mongoClient.disconnect();
-      if (kibanaClient) await kibanaClient.disconnect();
+      if (mongoClient) await mongoClient!.disconnect();
+      if (kibanaClient) await kibanaClient!.disconnect();
     }
   }, 30000);
 
