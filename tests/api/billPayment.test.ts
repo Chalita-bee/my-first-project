@@ -124,9 +124,6 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
     const headers = InqPaymentPayloads.getHeaders();
     const requestId = headers['X-Request-ID'];
 
-    let mongoClient: MongoDBClient | null = null;
-    let kibanaClient: KibanaClient | null = null;
-
     try {
       // ====== STEP 1: Call API ======
       console.log(`\n[Step 1] Calling Payment Inquiry API with Request ID: ${requestId}`);
@@ -147,9 +144,8 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
       // ====== STEP 2 & 3: Validate Kibana Logs and MongoDB (in parallel) ======
       console.log(`\n[Steps 2-3] Validating Kibana logs and MongoDB in parallel...`);
 
-      const kibanaValidation = (async (): Promise<void> => {
+      const kibanaValidation = async (): Promise<void> => {
         const kc = new KibanaClient();
-        kibanaClient = kc;
         try {
           await kc.connect();
 
@@ -179,12 +175,13 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
           }
         } catch (kibanaError) {
           console.log(`[Step 2] ⚠ Kibana validation skipped:`, (kibanaError as any).message);
+        } finally {
+          await kc.disconnect();
         }
-      })();
+      };
 
-      const mongoValidation = (async (): Promise<void> => {
+      const mongoValidation = async (): Promise<void> => {
         const mc = new MongoDBClient();
-        mongoClient = mc;
         try {
           await mc.connect();
 
@@ -208,21 +205,19 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
           }
         } catch (mongoError) {
           console.log(`[Step 3] ⚠ MongoDB validation skipped:`, (mongoError as any).message);
+        } finally {
+          await mc.disconnect();
         }
-      })();
+      };
 
       // Wait for both validations to complete
-      await Promise.all([kibanaValidation, mongoValidation]);
+      await Promise.all([kibanaValidation(), mongoValidation()]);
 
       console.log(`\n✅ [COMPLETE] Full integration test passed!`);
 
     } catch (error) {
       console.log(`\n❌ [ERROR] API Request failed:`, (error as any).message);
       console.log('API not available or integration test setup needed');
-    } finally {
-      // Cleanup
-      if (mongoClient) await mongoClient!.disconnect();
-      if (kibanaClient) await kibanaClient!.disconnect();
     }
   }, 30000);
 
