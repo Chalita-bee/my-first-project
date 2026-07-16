@@ -155,9 +155,9 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
         try {
           await kc.connect();
 
-          // Wait for logs to propagate to Elasticsearch (10-15 seconds)
-          console.log(`[Step 2] ⏳ Waiting for logs to propagate (10-15 seconds)...`);
-          await new Promise(resolve => setTimeout(resolve, 12000));
+          // Wait for logs to propagate to Elasticsearch (20-25 seconds)
+          console.log(`[Step 2] ⏳ Waiting for logs to propagate (20-25 seconds)...`);
+          await new Promise(resolve => setTimeout(resolve, 22000));
 
           let logs = await kc.getLogsByCorrelationId(
             INDICES.BILL_PAYMENT,
@@ -194,6 +194,9 @@ describe('Payment Inquiry (InqPayment) API Tests', () => {
         const mc = new MongoDBClient();
         try {
           await mc.connect();
+
+          // Wait for transaction to be saved (2 seconds)
+          await new Promise(resolve => setTimeout(resolve, 2000));
 
           // ค้นหาจาก backdoor_transaction collection โดยใช้ requestUID
           let transaction = await mc.findOne(
