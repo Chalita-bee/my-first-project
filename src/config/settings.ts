@@ -13,7 +13,6 @@ export const apiConfig = {
 };
 
 export const mongoConfig = {
-  connectionString: process.env.MONGO_CONNECTION_STRING || '',
   host: process.env.MONGO_HOST || 'localhost',
   port: parseInt(process.env.MONGO_PORT || '27017', 10),
   database: process.env.MONGO_DATABASE || 'bill_payment',
@@ -22,13 +21,11 @@ export const mongoConfig = {
 };
 
 export const elasticsearchConfig = {
-  host: process.env.ELASTICSEARCH_HOST || 'https://scb-mandatory-logging-np-es.np.private.azscb.tech',
+  host: process.env.ELASTICSEARCH_HOST || '',
 };
 
 export const kibanaConfig = {
-  host: process.env.KIBANA_HOST || 'https://scb-mandatory-logging-np-kb.np.private.azscb.tech',
-  space: process.env.KIBANA_SPACE || 'scb-payment-domain-cloud',
-  indexPattern: process.env.KIBANA_INDEX_PATTERN || 'logs-bill-payment-*',
+  host: process.env.KIBANA_HOST || '',
   username: process.env.KIBANA_USERNAME || '',
   password: process.env.KIBANA_PASSWORD || '',
 };
@@ -44,11 +41,6 @@ export const logConfig = {
 };
 
 export function getMongoConnectionString(): string {
-  // ใช้ connection string จาก .env ถ้ามี
-  if (mongoConfig.connectionString) {
-    return mongoConfig.connectionString;
-  }
-  // ถ้าไม่มี ให้ build จาก individual configs
   if (mongoConfig.username && mongoConfig.password) {
     return `mongodb://${mongoConfig.username}:${mongoConfig.password}@${mongoConfig.host}:${mongoConfig.port}/${mongoConfig.database}`;
   }
